@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { copy } from '../../src/ui/content/copy';
+import type { MoveSummary } from '../../src/game';
+import { announcementFor, copy } from '../../src/ui/content/copy';
 import { inkFor } from '../../src/ui/ink';
 import { readSeed } from '../../src/ui/seed';
 
@@ -46,5 +47,33 @@ describe('copy', () => {
 
   it('linha do registro', () => {
     expect(copy.logEntry(3, 384)).toBe('Chain ×3 · +384');
+  });
+});
+
+describe('announcementFor', () => {
+  const quiet: MoveSummary = { points: 0, maxChain: 0, lastMerge: null, rejected: false, gameOver: false };
+
+  it('jogada sem fusão não anuncia nada', () => {
+    expect(announcementFor(quiet)).toBe('');
+  });
+
+  it('coluna cheia', () => {
+    expect(announcementFor({ ...quiet, rejected: true })).toBe('Column full.');
+  });
+
+  it('a última fusão da jogada, com a cadeia dela', () => {
+    expect(announcementFor({ ...quiet, points: 32, maxChain: 1, lastMerge: { value: 32, chain: 1 } })).toBe(
+      'Merged into 32.',
+    );
+    expect(announcementFor({ ...quiet, points: 136, maxChain: 2, lastMerge: { value: 64, chain: 2 } })).toBe(
+      'Merged into 64. Chain ×2.',
+    );
+  });
+
+  it('fim de jogo, com ou sem fusão antes', () => {
+    expect(announcementFor({ ...quiet, gameOver: true })).toBe('The drawer is full.');
+    expect(announcementFor({ ...quiet, gameOver: true, lastMerge: { value: 8, chain: 1 } })).toBe(
+      'Merged into 8. The drawer is full.',
+    );
   });
 });

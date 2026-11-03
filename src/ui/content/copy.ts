@@ -1,4 +1,4 @@
-import { ROWS, type Column } from '../../game';
+import { ROWS, type Column, type MoveSummary } from '../../game';
 
 export const copy = {
   title: 'NUMBER MERGE',
@@ -28,3 +28,10 @@ export const copy = {
     return `${name}, ${count}, top ${String(top.value)}${full}`;
   },
 } as const;
+
+/** O que a região aria-live diz depois de uma jogada: coluna cheia, a última fusão e o fim de jogo. */
+export function announcementFor(summary: MoveSummary): string {
+  if (summary.rejected) return copy.columnFull;
+  const merged = summary.lastMerge ? copy.merged(summary.lastMerge.value, summary.lastMerge.chain) : '';
+  return summary.gameOver ? `${merged} ${copy.drawerFull}`.trim() : merged;
+}
