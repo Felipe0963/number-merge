@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { bestAfterGame, isNewBest } from '../record';
 
 const KEY = 'number-merge:best';
 
@@ -19,19 +20,21 @@ function writeBest(value: number): void {
   }
 }
 
-/** Recorde guardado no navegador. `isNewBest` indica que a partida atual superou o recorde anterior. */
+/**
+ * Recorde guardado no navegador. `previousBest` é o recorde de antes da partida atual; `score`, o da
+ * partida, é guardado assim que supera o recorde. `isNewBest` só vale se havia um recorde e ele caiu.
+ */
 export function useBestScore(score: number) {
   const [previousBest, setPreviousBest] = useState(readBest);
-  const best = Math.max(previousBest, score);
 
   useEffect(() => {
     if (score > previousBest) writeBest(score);
   }, [score, previousBest]);
 
-  /** Chamado ao começar uma partida nova: o recorde atual vira a referência. */
-  const commit = () => {
-    setPreviousBest(readBest());
-  };
+  /** Chamado ao começar uma partida nova: o recorde atual vira a referência, mesmo sem armazenamento. */
+  const commit = useCallback(() => {
+    setPreviousBest(bestAfterGame(previousBest, score, readBest()));
+  }, [previousBest, score]);
 
-  return { best, isNewBest: score > 0 && score > previousBest, commit };
+  return { previousBest, isNewBest: isNewBest(previousBest, score), commit };
 }

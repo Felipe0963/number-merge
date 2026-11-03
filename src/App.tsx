@@ -8,7 +8,7 @@ import { Ledger } from './ui/components/Ledger';
 import { NextBlocks } from './ui/components/NextBlocks';
 import { PressLog } from './ui/components/PressLog';
 import { Stamp } from './ui/components/Stamp';
-import { copy } from './ui/content/copy';
+import { announcementFor, copy } from './ui/content/copy';
 import { useAnnouncer } from './ui/hooks/useAnnouncer';
 import { useBestScore } from './ui/hooks/useBestScore';
 import { useEventPlayer } from './ui/hooks/useEventPlayer';
@@ -20,7 +20,8 @@ export function App() {
   const reducedMotion = useReducedMotion() ?? false;
   const { state, move, log, drop, restart } = useGame(seed);
   const frame = useEventPlayer(move, state.board, reducedMotion);
-  const { best, isNewBest, commit } = useBestScore(state.score);
+  const { previousBest, isNewBest, commit } = useBestScore(state.score);
+  const best = Math.max(previousBest, state.score);
 
   const event = frame.event;
   const chain = event?.type === 'merge' ? event.chain : 0;
@@ -30,13 +31,7 @@ export function App() {
     return targets;
   }, [event]);
 
-  const message = useMemo(() => {
-    if (!move) return '';
-    const summary = summarize(move.events);
-    if (summary.rejected) return copy.columnFull;
-    const merged = summary.lastMerge ? copy.merged(summary.lastMerge.value, summary.lastMerge.chain) : '';
-    return summary.gameOver ? `${merged} ${copy.drawerFull}`.trim() : merged;
-  }, [move]);
+  const message = useMemo(() => (move ? announcementFor(summarize(move.events)) : ''), [move]);
   const announcement = useAnnouncer(message, move?.id ?? 0);
 
   const playAgain = () => {
