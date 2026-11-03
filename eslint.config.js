@@ -20,12 +20,15 @@ export default tseslint.config(
     },
   },
   {
+    // Os hooks ficam em arquivos .ts; as regras de hooks valem para eles também.
+    files: ['src/**/*.{ts,tsx}'],
+    plugins: { 'react-hooks': reactHooks },
+    rules: reactHooks.configs.recommended.rules,
+  },
+  {
     files: ['**/*.tsx'],
-    plugins: { 'react-hooks': reactHooks, 'jsx-a11y': jsxA11y },
-    rules: {
-      ...reactHooks.configs.recommended.rules,
-      ...jsxA11y.flatConfigs.recommended.rules,
-    },
+    plugins: { 'jsx-a11y': jsxA11y },
+    rules: jsxA11y.flatConfigs.recommended.rules,
   },
   {
     files: ['**/*.js'],
