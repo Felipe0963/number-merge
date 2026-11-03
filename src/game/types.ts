@@ -39,6 +39,8 @@ export type GameEvent =
   | { readonly type: 'rejected'; readonly column: number; readonly board: Board }
   | { readonly type: 'gameOver'; readonly board: Board };
 
+export type MergeEvent = Extract<GameEvent, { readonly type: 'merge' }>;
+
 export interface GameState {
   readonly board: Board;
   /** Valor do próximo bloco a cair. */

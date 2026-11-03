@@ -1,6 +1,6 @@
 import { LazyMotion, MotionConfig, domAnimation, useReducedMotion } from 'motion/react';
-import { useMemo, useState } from 'react';
-import { COLUMNS, ROWS, type Position } from './game';
+import { useState } from 'react';
+import { COLUMNS, ROWS } from './game';
 import { Drawer } from './ui/components/Drawer';
 import { GameOver } from './ui/components/GameOver';
 import { Intro } from './ui/components/Intro';
@@ -14,7 +14,10 @@ import { useAnnouncer } from './ui/hooks/useAnnouncer';
 import { useBestScore } from './ui/hooks/useBestScore';
 import { useEventPlayer } from './ui/hooks/useEventPlayer';
 import { useGame } from './ui/hooks/useGame';
+import { useNewInks } from './ui/hooks/useNewInks';
 import { randomSeed, readSeed } from './ui/seed';
+
+const NO_TILES: ReadonlySet<number> = new Set();
 
 export function App() {
   const [seed] = useState(() => readSeed(window.location.search));
@@ -27,14 +30,10 @@ export function App() {
   // O motor já tem o resultado da jogada; o placar, o anúncio e o fim de jogo esperam a animação dela.
   const shown = frame.done || !move ? state : move.before;
   const best = Math.max(previousBest, shown.score);
+  const shownLog = frame.done ? log : log.filter((entry) => entry.id !== move?.id);
 
-  const event = frame.event;
-  const chain = event?.type === 'merge' ? event.chain : 0;
-  const exitTargets = useMemo(() => {
-    const targets = new Map<number, Position>();
-    if (event?.type === 'merge') for (const tile of event.absorbed) targets.set(tile.id, event.at);
-    return targets;
-  }, [event]);
+  const merge = frame.event?.type === 'merge' ? frame.event : null;
+  const newInks = useNewInks(frame.board, gameId);
 
   const message = move && frame.done ? announcementFor(move.summary) : '';
   const announcement = useAnnouncer(message, move?.id ?? 0);
@@ -69,19 +68,20 @@ export function App() {
               {state.moves === 0 && <Intro />}
               <Drawer
                 board={frame.board}
-                exitTargets={exitTargets}
-                chain={chain}
+                merge={merge}
                 step={frame.step}
+                // Com movimento reduzido, sem o brilho de nova tinta (é uma animação de destaque).
+                newInkIds={reducedMotion ? NO_TILES : newInks}
                 reducedMotion={reducedMotion}
                 onChoose={chooseColumn}
               />
               {/* Com movimento reduzido, sem carimbo (design, §3). */}
-              {!reducedMotion && <Stamp chain={chain} step={frame.step} />}
+              {!reducedMotion && <Stamp chain={merge?.chain ?? 0} step={frame.step} />}
             </div>
           </div>
 
           <aside className="app__side">
-            <PressLog entries={log} />
+            <PressLog entries={shownLog} />
             <button type="button" className="new-game" onClick={playAgain}>
               {copy.newGame}
             </button>

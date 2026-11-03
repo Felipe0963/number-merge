@@ -16,13 +16,16 @@ export const place = (at: Position) => ({
 interface TypeBlockProps {
   tile: Tile;
   at: Position;
+  /** O bloco trouxe uma tinta nova na partida: brilha de leve uma vez (CSS). */
+  newInk: boolean;
 }
 
 /** Um bloco na gaveta. Entra caindo do topo da coluna; ao ser absorvido, desliza até o bloco resultante. */
-export function TypeBlock({ tile, at }: TypeBlockProps) {
+export function TypeBlock({ tile, at, newInk }: TypeBlockProps) {
   return (
     <m.div
       className="type-block"
+      data-new-ink={newInk || undefined}
       initial={{ ...place({ column: at.column, row: ROWS }), opacity: 0, scaleY: 1 }}
       // Ao pousar, o bloco achata de leve e volta (só na entrada; o movimento reduzido tira a escala).
       animate={{ ...place(at), opacity: 1, scaleY: [1, 1, 0.88, 1] }}

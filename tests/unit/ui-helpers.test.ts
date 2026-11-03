@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { MoveSummary } from '../../src/game';
 import { announcementFor, copy } from '../../src/ui/content/copy';
-import { inkFor } from '../../src/ui/ink';
+import { STARTING_INKS, inkFor, newInkTiles } from '../../src/ui/ink';
+import { boardFrom } from './helpers';
 import { readSeed } from '../../src/ui/seed';
 
 describe('inkFor', () => {
@@ -11,6 +12,28 @@ describe('inkFor', () => {
     expect([128, 512].map(inkFor)).toEqual(['green', 'green']);
     expect([1024, 4096].map(inkFor)).toEqual(['ochre', 'ochre']);
     expect([8192, 65536].map(inkFor)).toEqual(['carmine', 'carmine']);
+  });
+});
+
+describe('newInkTiles', () => {
+  it('a partida começa com a tinta preta já vista', () => {
+    expect([...STARTING_INKS]).toEqual(['black']);
+  });
+
+  it('sem tinta nova, nenhum bloco', () => {
+    expect(newInkTiles(boardFrom([[2, 4], [8], [], [], []]), STARTING_INKS).size).toBe(0);
+  });
+
+  it('um bloco para cada tinta que ainda não apareceu na partida', () => {
+    const board = boardFrom([[2, 16], [32], [128], [], []]);
+    // Ids de boardFrom: 1000 (2), 1001 (16), 1002 (32), 1003 (128).
+    expect(newInkTiles(board, STARTING_INKS)).toEqual(
+      new Map([
+        ['navy', 1001],
+        ['green', 1003],
+      ]),
+    );
+    expect(newInkTiles(board, new Set(['black', 'navy']))).toEqual(new Map([['green', 1003]]));
   });
 });
 

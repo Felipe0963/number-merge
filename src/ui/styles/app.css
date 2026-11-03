@@ -291,20 +291,58 @@ button {
   font-size: min(50cqh, 110cqw / var(--digits, 1));
 }
 
-.type-face[data-ink='black'] {
+/* Tinta por faixa de valor: a cor do número impresso e a do respingo. */
+[data-ink='black'] {
   color: var(--ink-black);
 }
-.type-face[data-ink='navy'] {
+[data-ink='navy'] {
   color: var(--ink-navy);
 }
-.type-face[data-ink='green'] {
+[data-ink='green'] {
   color: var(--ink-green);
 }
-.type-face[data-ink='ochre'] {
+[data-ink='ochre'] {
   color: var(--ink-ochre);
 }
-.type-face[data-ink='carmine'] {
+[data-ink='carmine'] {
   color: var(--ink-carmine);
+}
+
+/* Nova tinta: na primeira vez que uma faixa aparece na partida, o bloco brilha de leve uma vez. */
+.type-block[data-new-ink] .type-face {
+  animation: new-ink-glow 1.1s ease-out both;
+}
+
+@keyframes new-ink-glow {
+  0%,
+  100% {
+    box-shadow: 0 2px 0 rgb(0 0 0 / 0.35);
+  }
+  25% {
+    box-shadow:
+      0 2px 0 rgb(0 0 0 / 0.35),
+      0 0 0 3px var(--paper),
+      0 0 1.25rem 0.4rem rgb(239 228 207 / 0.75);
+  }
+}
+
+/* Respingo de tinta: algumas gotas saem do centro do bloco recém-impresso e somem. */
+.ink-splash {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: calc(100% / var(--columns));
+  height: calc(100% / var(--rows));
+}
+
+.ink-splash__drop {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12%;
+  aspect-ratio: 1;
+  background: currentColor;
+  border-radius: 50% 45% 55% 50%;
 }
 
 .next-blocks .type-face {
