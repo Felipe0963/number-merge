@@ -1,6 +1,6 @@
 # Number Merge — Design
 
-Status: em revisão
+Status: aprovado e implementado
 Projeto: `projetos/number-merge`
 Idioma do jogo: inglês
 Idioma da documentação: português
@@ -59,7 +59,8 @@ A mecânica é própria (blocos que caem em colunas), e não uma cópia de jogos
 
 - **Score:** soma das fusões com multiplicadores.
 - **Top block:** o maior valor alcançado na partida.
-- **Best:** o melhor score salvo no navegador (`localStorage`). Se o armazenamento falhar, o jogo funciona sem recorde.
+- **Best:** o melhor score salvo no navegador (`localStorage`). Se o armazenamento falhar, o recorde vale só durante a visita.
+- **New best:** aparece no fim de jogo só quando havia um recorde anterior e ele foi superado (nunca na primeira partida).
 
 ### Fora do escopo desta versão
 
@@ -109,16 +110,19 @@ Os valores exatos das cores saem do protótipo visual e precisam ter contraste m
 | Fusão | Choque de prensa, respingo de tinta e o novo valor "impresso" |
 | Cadeia | Carimbo inclinado "×2", "×3"… e tremor da gaveta proporcional à cadeia |
 | Pontuação | Números do placar rolando até o valor novo |
-| Nova tinta | Brilho de destaque na primeira vez que uma faixa de valor aparece |
+| Nova tinta | Brilho de destaque na primeira vez que uma faixa de valor aparece na partida (o preto já começa visto, porque todo bloco inicial é preto) |
 
 - Se o jogador fizer uma jogada nova durante uma animação, a animação em andamento termina na hora e a nova começa.
-- **Movimento reduzido:** sem queda animada, tremor, respingo ou carimbo; só transições curtas de opacidade.
+- O placar, o anúncio, a folha de registro e o fim de jogo só mudam quando a animação da jogada termina.
+- **Movimento reduzido:** sem queda animada, achatamento, tremor, respingo, brilho, carimbo ou placar rolando; só transições curtas de opacidade.
 
 ### Telas
 
-1. **Início:** título composto em blocos de madeira, uma frase de como jogar. Escolher uma coluna começa a partida.
+1. **Início:** título composto em blocos de madeira, uma faixa de papel sobre a gaveta vazia com a frase de como jogar. Escolher uma coluna começa a partida.
 2. **Jogo:** gaveta, placar, próximos blocos e (no computador) a folha de registro.
-3. **Fim de jogo:** uma "folha impressa" com score, top block, best e o botão para jogar de novo.
+3. **Fim de jogo:** uma "folha impressa" com score, top block, best e o botão para jogar de novo. Escape fecha a folha; escolher qualquer coluna a abre de novo.
+
+O jogo inteiro cabe na tela, sem rolagem, em 1280×800, 1440×900 e no celular.
 
 ## 4. Textos (inglês)
 
@@ -143,7 +147,11 @@ Os valores exatos das cores saem do protótipo visual e precisam ter contraste m
 
 ### Princípio
 
-A lógica do jogo é TypeScript puro e não conhece o React. Uma jogada é calculada inteira de uma vez e devolve o estado final e a **lista de eventos** que aconteceram. A interface só reproduz esses eventos com animação.
+A lógica do jogo é TypeScript puro e não conhece o React. Uma jogada é calculada inteira de uma vez e devolve o estado final e a **lista de eventos** que aconteceram. Cada evento carrega o tabuleiro logo depois dele; a exceção é o `merge`, cujo tabuleiro ainda mostra os blocos absorvidos no lugar (o instante do choque), que saem no `fall` seguinte. A interface só mostra esses tabuleiros em sequência, com animação.
+
+Os blocos que se moveram durante a jogada (o que caiu, os resultados das fusões e os que desceram) ficam num conjunto que vale para a cadeia inteira. A cada passo, o mais baixo e mais à esquerda que tem vizinhos iguais se funde; a cadeia termina quando nenhum deles tem.
+
+A URL aceita `?seed=123` para repetir uma partida. Os testes de navegador usam isso para jogar no motor e na tela ao mesmo tempo e comparar.
 
 ### Motor (`src/game/`)
 
@@ -154,7 +162,8 @@ A lógica do jogo é TypeScript puro e não conhece o React. Uma jogada é calcu
 | `random.ts` | Gerador com semente e sorteio dos blocos |
 | `resolve.ts` | Fusões, gravidade e cadeias, gerando eventos |
 | `score.ts` | Pontos de cada fusão com multiplicador |
-| `game.ts` | `newGame(seed)` e `dropTile(state, column)` → `{ state, events }` |
+| `game.ts` | `newGame(seed, firstId)` e `dropTile(state, column)` → `{ state, events }` |
+| `summary.ts` | Resumo de uma jogada: pontos, maior cadeia, última fusão |
 
 Eventos (`GameEvent`):
 
@@ -172,19 +181,29 @@ Cada bloco tem um `id` estável, para a interface acompanhar o mesmo bloco entre
 
 | Arquivo | Responsabilidade |
 |---|---|
-| `hooks/useGame.ts` | Estado da partida, jogadas e fila de eventos |
-| `hooks/useEventPlayer.ts` | Reproduz os eventos em sequência; termina na hora se chegar uma jogada nova |
+| `hooks/useGame.ts` | Estado da partida, última jogada e folha de registro |
+| `hooks/useEventPlayer.ts` | Mostra os tabuleiros dos eventos em sequência e diz quando a jogada terminou |
 | `hooks/useBestScore.ts` | Recorde no `localStorage`, tolerante a falhas |
-| `hooks/useKeyboard.ts` | Setas, Enter e espaço |
+| `hooks/useColumnKeys.ts` | Tabindex itinerante: setas, Home e End entre colunas |
+| `hooks/useCountUp.ts` | Placar rolando até o valor novo |
+| `hooks/useAnnouncer.ts` | Texto da região `aria-live`, repetindo mensagens iguais |
+| `hooks/useNewInks.ts` | Tintas já vistas na partida, para o brilho de nova tinta |
+| `components/Title.tsx` | Título composto em blocos de madeira |
 | `components/Drawer.tsx` | Gaveta e colunas focáveis e clicáveis |
-| `components/TypeBlock.tsx` | Um bloco, com tinta e animação |
-| `components/Ledger.tsx` | Placar e folha de registro |
+| `components/TypeBlock.tsx` | Um bloco na gaveta, com queda, achatamento e deslize ao ser absorvido |
+| `components/TypeFace.tsx` | A face do bloco com o número impresso |
+| `components/InkSplash.tsx` | Respingo de tinta na fusão |
+| `components/Ledger.tsx` | Placar |
+| `components/PressLog.tsx` | Folha de registro das cadeias |
 | `components/NextBlocks.tsx` | Próximo e seguinte |
 | `components/Stamp.tsx` | Carimbo da cadeia |
-| `components/StartScreen.tsx` | Tela inicial |
-| `components/GameOver.tsx` | Tela de fim de jogo |
-| `content/copy.ts` | Todos os textos |
-| `styles/tokens.css` | Cores, fontes, espaçamentos e tintas |
+| `components/Intro.tsx` | Faixa de como jogar sobre a gaveta vazia |
+| `components/GameOver.tsx` | Folha de fim de jogo |
+| `content/copy.ts` | Todos os textos e o anúncio de cada jogada |
+| `ink.ts` | Tinta por faixa de valor e tintas novas no tabuleiro |
+| `record.ts` | Regras do recorde e do "New best" |
+| `seed.ts` | Semente da URL ou aleatória |
+| `styles/tokens.css`, `styles/app.css` | Cores, fontes, espaçamentos, tintas e estilos |
 
 ### Fluxo
 
@@ -193,7 +212,8 @@ Coluna escolhida → `useGame` chama `dropTile` → recebe `{ state, events }` �
 ### Acessibilidade
 
 - Cada coluna é um botão com nome acessível que descreve o conteúdo.
-- Setas movem o foco entre colunas; Enter e espaço soltam o bloco.
+- A gaveta é uma única parada de Tab. Setas movem o foco entre colunas (dando a volta), Home e End vão à primeira e à última; Enter e espaço soltam o bloco.
+- O título é lido como um único "NUMBER MERGE"; os blocos de letras são decorativos.
 - Uma região `aria-live="polite"` anuncia fusões, cadeias, coluna cheia e fim de jogo.
 - Contraste mínimo de 4,5:1 nos textos e números.
 - `prefers-reduced-motion` respeitado.
