@@ -8,6 +8,7 @@ import { Ledger } from './ui/components/Ledger';
 import { NextBlocks } from './ui/components/NextBlocks';
 import { PressLog } from './ui/components/PressLog';
 import { Stamp } from './ui/components/Stamp';
+import { Title } from './ui/components/Title';
 import { announcementFor, copy } from './ui/content/copy';
 import { useAnnouncer } from './ui/hooks/useAnnouncer';
 import { useBestScore } from './ui/hooks/useBestScore';
@@ -57,7 +58,7 @@ export function App() {
         {/* As medidas do tabuleiro vêm do motor: o CSS as usa na grade, nos blocos e na proporção. */}
         <main className="app" style={{ '--columns': COLUMNS, '--rows': ROWS }}>
           <header className="app__header">
-            <h1 className="title">{copy.title}</h1>
+            <Title />
             <Ledger score={shown.score} best={best} topBlock={shown.topBlock} reducedMotion={reducedMotion} />
             <NextBlocks next={state.next} then={state.then} />
           </header>

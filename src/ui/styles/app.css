@@ -104,13 +104,36 @@ button {
   gap: var(--space-3);
 }
 
+/* Título composto em blocos de madeira: uma letra por bloco, cada palavra inteira numa linha. */
 .title {
   margin: 0;
   font-family: var(--font-type);
   font-weight: 400;
-  font-size: clamp(1.75rem, 7vw, 2.5rem);
-  letter-spacing: 0.06em;
-  color: var(--paper);
+  font-size: clamp(1rem, 4.6vw, 1.5rem);
+  line-height: 1;
+}
+
+.title__words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3em 0.55em;
+}
+
+.title__word {
+  display: flex;
+  gap: 0.12em;
+}
+
+.title__letter {
+  display: grid;
+  place-items: center;
+  width: 1.3em;
+  height: 1.4em;
+  color: var(--ink-black);
+  background: var(--boxwood);
+  border-bottom: 3px solid var(--boxwood-edge);
+  border-radius: 0.2em;
+  box-shadow: 0 2px 0 rgb(0 0 0 / 0.35);
 }
 
 /* Placar */
