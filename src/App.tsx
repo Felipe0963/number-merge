@@ -1,6 +1,6 @@
 import { MotionConfig, useReducedMotion } from 'motion/react';
 import { useMemo, useState } from 'react';
-import { summarize, type Position } from './game';
+import type { Position } from './game';
 import { Drawer } from './ui/components/Drawer';
 import { GameOver } from './ui/components/GameOver';
 import { Intro } from './ui/components/Intro';
@@ -21,7 +21,10 @@ export function App() {
   const { state, move, log, drop, restart } = useGame(seed);
   const frame = useEventPlayer(move, state.board, reducedMotion);
   const { previousBest, isNewBest, commit } = useBestScore(state.score);
-  const best = Math.max(previousBest, state.score);
+
+  // O motor já tem o resultado da jogada; o placar, o anúncio e o fim de jogo esperam a animação dela.
+  const shown = frame.done || !move ? state : move.before;
+  const best = Math.max(previousBest, shown.score);
 
   const event = frame.event;
   const chain = event?.type === 'merge' ? event.chain : 0;
@@ -31,7 +34,7 @@ export function App() {
     return targets;
   }, [event]);
 
-  const message = useMemo(() => (move ? announcementFor(summarize(move.events)) : ''), [move]);
+  const message = move && frame.done ? announcementFor(move.summary) : '';
   const announcement = useAnnouncer(message, move?.id ?? 0);
 
   const playAgain = () => {
@@ -44,7 +47,7 @@ export function App() {
       <main className="app">
         <header className="app__header">
           <h1 className="title">{copy.title}</h1>
-          <Ledger score={state.score} best={best} topBlock={state.topBlock} reducedMotion={reducedMotion} />
+          <Ledger score={shown.score} best={best} topBlock={shown.topBlock} reducedMotion={reducedMotion} />
           <NextBlocks next={state.next} then={state.then} />
         </header>
 
@@ -77,7 +80,7 @@ export function App() {
         </p>
 
         <GameOver
-          open={state.over}
+          open={shown.over}
           score={state.score}
           topBlock={state.topBlock}
           best={best}

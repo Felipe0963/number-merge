@@ -3,7 +3,11 @@ import { drawValue } from './random';
 import { resolve } from './resolve';
 import { COLUMNS, type GameEvent, type GameState, type MoveResult } from './types';
 
-export function newGame(seed: number): GameState {
+/**
+ * Partida nova. `firstId` é o id do primeiro bloco: quem começa várias partidas seguidas pode continuar
+ * a contagem, para que blocos de partidas diferentes nunca tenham o mesmo id.
+ */
+export function newGame(seed: number, firstId = 1): GameState {
   const first = drawValue(seed >>> 0 || 1, 0);
   const second = drawValue(first.rng, 0);
   return {
@@ -15,7 +19,7 @@ export function newGame(seed: number): GameState {
     moves: 0,
     over: false,
     rng: second.rng,
-    nextId: 1,
+    nextId: firstId,
   };
 }
 

@@ -15,6 +15,13 @@ describe('newGame', () => {
   it('a mesma semente gera a mesma partida', () => {
     expect(newGame(123)).toEqual(newGame(123));
   });
+
+  it('os ids podem continuar de onde a partida anterior parou', () => {
+    const fresh = newGame(123, 57);
+    expect(fresh.nextId).toBe(57);
+    expect(dropTile(fresh, 0).state.board[0]![0]!.id).toBe(57);
+    expect(newGame(123).nextId).toBe(1);
+  });
 });
 
 describe('dropTile', () => {

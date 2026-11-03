@@ -10,7 +10,7 @@ interface DrawerProps {
   exitTargets: ExitTargets;
   /** Tamanho da cadeia do passo atual (0 sem fusão), para o tremor. */
   chain: number;
-  step: number;
+  step: string;
   over: boolean;
   onDrop: (column: number) => void;
 }

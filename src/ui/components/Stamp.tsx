@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'motion/react';
 
 interface StampProps {
   chain: number;
-  step: number;
+  step: string;
 }
 
 /** Carimbo de borracha "×2", "×3"… a cada fusão de uma cadeia. */
