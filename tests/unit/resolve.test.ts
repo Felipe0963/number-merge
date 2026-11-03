@@ -83,6 +83,21 @@ describe('resolve', () => {
     ]);
   });
 
+  it('um bloco que caiu num passo anterior ainda verifica os vizinhos', () => {
+    // O 2 pousa entre dois 2: vira 8 e os dois 16/32 de cima caem. O 16 da esquerda funde primeiro
+    // (mais à esquerda); o 32 da direita também caiu e precisa fundir no passo seguinte.
+    const board = boardFrom([[16, 2, 16], [4], [32, 2, 32], [], []]);
+    const result = landAndResolve(board, 1, 2);
+    expect(valuesOf(result.board)).toEqual([[32], [4, 8], [64], [], []]);
+    const merges = result.events.filter((event) => event.type === 'merge');
+    expect(merges.map((event) => [event.into.value, event.chain])).toEqual([
+      [8, 1],
+      [32, 2],
+      [64, 3],
+    ]);
+    expect(result.points).toBe(8 + 32 * 2 + 64 * 3);
+  });
+
   it('não altera o tabuleiro recebido', () => {
     const board = boardFrom([[8], [], [], [], []]);
     const landed = board.map((c, i) => (i === 0 ? [...c, { id: 1, value: 8 }] : [...c]));

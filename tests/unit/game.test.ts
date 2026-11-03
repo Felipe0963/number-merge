@@ -51,6 +51,15 @@ describe('dropTile', () => {
     expect(after.topBlock).toBe(16);
   });
 
+  it('nenhum bloco que se moveu na jogada fica encostado num igual', () => {
+    // 2 na coluna 4: funde com o 2 da coluna 3 (vira 4); o 4 e o 8 de cima da coluna 3 caem.
+    // O 4 que caiu funde com o 4 novo (vira 8, ×2) e o 8 que caiu funde com ele (vira 16, ×3).
+    const board = boardFrom([[16, 2, 4], [8], [64, 2, 4, 8], [8], [4, 16, 2]]);
+    const { state: after } = dropTile(stateWith({ board, next: 2 }), 3);
+    expect(valuesOf(after.board)).toEqual([[16, 2, 4], [8], [64, 16], [8], [4, 16, 2]]);
+    expect(after.score).toBe(4 + 8 * 2 + 16 * 3);
+  });
+
   it('termina quando nenhuma coluna tem espaço', () => {
     const almost = Array.from({ length: COLUMNS }, (_, c) =>
       Array.from({ length: c === COLUMNS - 1 ? ROWS - 1 : ROWS }, (_, r) => 2 ** (((c + r) % 9) + 1)),

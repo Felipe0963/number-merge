@@ -41,33 +41,36 @@ function collapse(
   return { board: next, falls };
 }
 
-function positionOf(board: MutableBoard, id: number): Position {
-  for (let column = 0; column < board.length; column++) {
-    const row = board[column]!.findIndex((tile) => tile.id === id);
-    if (row >= 0) return { column, row };
-  }
-  throw new Error(`Tile ${String(id)} is not on the board.`);
+/** Posições dos blocos de `ids` que ainda estão no tabuleiro. */
+function positionsOf(board: MutableBoard, ids: ReadonlySet<number>): Position[] {
+  return board.flatMap((column, columnIndex) =>
+    column.flatMap((tile, row) => (ids.has(tile.id) ? [{ column: columnIndex, row }] : [])),
+  );
 }
 
 /**
- * Resolve as fusões a partir do bloco que acabou de pousar em `landed`. A cada passo, uma única fusão
- * acontece: a do bloco em movimento mais baixo e mais à esquerda que tem vizinhos iguais. Depois dela,
- * os blocos sem apoio caem, e os que se moveram podem fundir no passo seguinte. Não altera `board`.
+ * Resolve as fusões a partir do bloco que acabou de pousar em `landed`. Todo bloco que se moveu na
+ * jogada (o que pousou, cada resultado de fusão e cada bloco que caiu) continua "em movimento" até o
+ * fim da cadeia. A cada passo, uma única fusão acontece: a do bloco em movimento mais baixo e mais à
+ * esquerda que tem vizinhos iguais. Depois dela, os blocos sem apoio caem. A cadeia termina quando
+ * nenhum bloco em movimento tem vizinho igual. Não altera `board`.
  */
 export function resolve(board: Board, landed: Position): Resolution {
   let current: MutableBoard = board.map((column) => [...column]);
   const events: GameEvent[] = [];
   let points = 0;
   let chain = 0;
-  let moving: Position[] = [landed];
+  const moving = new Set([current[landed.column]![landed.row]!.id]);
 
   for (;;) {
-    const candidate = [...moving]
+    const candidate = positionsOf(current, moving)
       .sort(byBottomThenLeft)
-      .map((at) => ({ at, tile: current[at.column]?.[at.row] }))
-      .map(({ at, tile }) => ({ at, tile, neighbors: tile ? equalNeighbors(current, at, tile.value) : [] }))
+      .map((at) => {
+        const tile = current[at.column]![at.row]!;
+        return { at, tile, neighbors: equalNeighbors(current, at, tile.value) };
+      })
       .find(({ neighbors }) => neighbors.length > 0);
-    if (!candidate?.tile) break;
+    if (!candidate) break;
 
     const { at, tile, neighbors } = candidate;
     chain++;
@@ -80,14 +83,16 @@ export function resolve(board: Board, landed: Position): Resolution {
     const snapshot = current.map((column) => [...column]);
     events.push({ type: 'merge', into, absorbed, at, chain, points: gained, board: snapshot });
 
-    const collapsed = collapse(current, new Set(absorbed.map((t) => t.id)));
+    const absorbedIds = new Set(absorbed.map((t) => t.id));
+    const collapsed = collapse(current, absorbedIds);
     current = collapsed.board;
     if (collapsed.falls.length > 0) {
       events.push({ type: 'fall', falls: collapsed.falls, board: current.map((column) => [...column]) });
     }
 
-    const mergedAt = positionOf(current, into.id);
-    moving = [mergedAt, ...collapsed.falls.map((fall) => ({ column: fall.column, row: fall.to }))];
+    for (const id of absorbedIds) moving.delete(id);
+    moving.add(into.id);
+    for (const fall of collapsed.falls) moving.add(fall.tile.id);
   }
 
   return { board: current, events, points };
