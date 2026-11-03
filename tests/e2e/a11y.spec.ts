@@ -4,6 +4,8 @@ import { COLUMNS } from '../../src/game';
 import { replay, simulate } from './replay';
 
 const SEED = 4242;
+/** Uma partida inteira tem quase cem jogadas; com vários navegadores em paralelo, passa de 30 s. */
+const FULL_GAME = 'Repete uma partida inteira, até a gaveta encher.';
 
 test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -21,6 +23,7 @@ test('meio da partida sem violações', async ({ page }) => {
 });
 
 test('fim de jogo sem violações', async ({ page }) => {
+  test.slow(true, FULL_GAME);
   const { columns } = simulate(
     SEED,
     (_, move) => (move * 2) % COLUMNS,

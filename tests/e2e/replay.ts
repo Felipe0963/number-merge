@@ -1,8 +1,13 @@
 import { expect, type Page } from '@playwright/test';
-import { dropTile, newGame, summarize, type GameState } from '../../src/game';
+import { COLUMNS, ROWS, dropTile, newGame, summarize, type Board, type GameState } from '../../src/game';
+import { copy } from '../../src/ui/content/copy';
 
 export const column = (page: Page, index: number) =>
   page.getByRole('group', { name: 'Drawer' }).getByRole('button').nth(index);
+
+/** Estratégia que espalha os blocos da esquerda para a direita e faz cadeias logo no começo (semente 4242). */
+export const spreadLeftToRight = (state: GameState, move: number): number =>
+  state.board[move % COLUMNS]!.length < ROWS ? move % COLUMNS : (move + 1) % COLUMNS;
 
 /** Joga no motor seguindo `choose` até `stop` ser verdadeiro (ou até `limit` jogadas). */
 export function simulate(
@@ -31,4 +36,11 @@ export async function replay(page: Page, columns: readonly number[]): Promise<vo
 
 export async function expectScore(page: Page, score: number): Promise<void> {
   await expect(page.getByTestId('score')).toHaveAttribute('data-value', String(score));
+}
+
+/** Cada coluna da tela tem o nome acessível que o tabuleiro do motor descreve. */
+export async function expectBoard(page: Page, board: Board): Promise<void> {
+  for (const [index, cells] of board.entries()) {
+    await expect(column(page, index)).toHaveAccessibleName(copy.columnLabel(index, cells));
+  }
 }
