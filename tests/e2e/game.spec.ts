@@ -105,6 +105,39 @@ test('Play again começa uma partida nova', async ({ page }) => {
   await expect(column(page, 0)).toHaveAccessibleName('Column 1, empty');
 });
 
+test('Escape fecha a folha do fim de jogo e escolher uma coluna a traz de volta', async ({ page }) => {
+  const { columns, state } = simulate(
+    SEED,
+    (_, move) => (move * 2) % COLUMNS,
+    () => false,
+  );
+  await page.goto(`/?seed=${String(SEED)}`);
+  await replay(page, columns);
+  const results = page.getByRole('dialog', { name: 'The drawer is full.' });
+  await expect(results).toBeVisible();
+
+  // Escape seguidos fecham a folha; o jogo continua terminado e nada quebra.
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Escape');
+  await expect(results).toBeHidden();
+  await expect(column(page, 0)).toHaveAccessibleName(/, full$/);
+  await expectScore(page, state.score);
+
+  // Com o mouse ou com o teclado, escolher uma coluna mostra a folha de novo, com o mesmo resultado.
+  await column(page, 0).click();
+  await expect(results).toBeVisible();
+  await expect(results).toContainText(String(state.score));
+  await page.keyboard.press('Escape');
+  await expect(results).toBeHidden();
+  await column(page, 3).focus();
+  await page.keyboard.press('Enter');
+  await expect(results).toBeVisible();
+
+  await page.getByRole('button', { name: 'Play again' }).click();
+  await expect(results).toBeHidden();
+  await expectScore(page, 0);
+});
+
 test('com movimento reduzido, nada fica animando depois da jogada', async ({ page }) => {
   await page.goto(`/?seed=${String(SEED)}`);
   await column(page, 0).click();

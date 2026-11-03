@@ -8,9 +8,15 @@ interface GameOverProps {
   best: number;
   isNewBest: boolean;
   onPlayAgain: () => void;
+  /** O jogador fechou a folha (Escape). O App decide como ela volta. */
+  onDismiss: () => void;
 }
 
-export function GameOver({ open, score, topBlock, best, isNewBest, onPlayAgain }: GameOverProps) {
+/**
+ * A folha impressa do fim de jogo, num `<dialog>` modal. Escape fecha a folha, como em qualquer modal
+ * (o navegador nem sempre deixa impedir isso); o evento `close` avisa o App, que mantém o estado em dia.
+ */
+export function GameOver({ open, score, topBlock, best, isNewBest, onPlayAgain, onDismiss }: GameOverProps) {
   const dialog = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -25,8 +31,9 @@ export function GameOver({ open, score, topBlock, best, isNewBest, onPlayAgain }
       ref={dialog}
       className="game-over"
       aria-labelledby="game-over-title"
-      onCancel={(event) => {
-        event.preventDefault();
+      onClose={() => {
+        // Fechada por fora enquanto devia estar aberta: foi o jogador. Quando o App fecha, `open` já é falso.
+        if (open) onDismiss();
       }}
     >
       <h2 id="game-over-title">{copy.drawerFull}</h2>

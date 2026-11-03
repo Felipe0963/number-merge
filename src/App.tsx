@@ -19,7 +19,7 @@ export function App() {
   const [seed] = useState(() => readSeed(window.location.search));
   // A preferência de movimento é lida só aqui e passada adiante, inclusive para o Motion.
   const reducedMotion = useReducedMotion() ?? false;
-  const { state, move, log, drop, restart } = useGame(seed);
+  const { gameId, state, move, log, drop, restart } = useGame(seed);
   const frame = useEventPlayer(move, state.board, reducedMotion);
   const { previousBest, isNewBest, commit } = useBestScore(state.score);
 
@@ -37,6 +37,14 @@ export function App() {
 
   const message = move && frame.done ? announcementFor(move.summary) : '';
   const announcement = useAnnouncer(message, move?.id ?? 0);
+
+  // Escape fecha a folha do fim de jogo; escolher uma coluna com a gaveta cheia traz a folha de volta.
+  const [dismissedGame, setDismissedGame] = useState<number | null>(null);
+  const resultsOpen = shown.over && dismissedGame !== gameId;
+  const chooseColumn = (column: number) => {
+    if (state.over) setDismissedGame(null);
+    else drop(column);
+  };
 
   const playAgain = () => {
     commit();
@@ -63,9 +71,8 @@ export function App() {
                 exitTargets={exitTargets}
                 chain={chain}
                 step={frame.step}
-                over={state.over}
                 reducedMotion={reducedMotion}
-                onDrop={drop}
+                onChoose={chooseColumn}
               />
               {/* Com movimento reduzido, sem carimbo (design, §3). */}
               {!reducedMotion && <Stamp chain={chain} step={frame.step} />}
@@ -84,12 +91,15 @@ export function App() {
           </p>
 
           <GameOver
-            open={shown.over}
+            open={resultsOpen}
             score={state.score}
             topBlock={state.topBlock}
             best={best}
             isNewBest={isNewBest}
             onPlayAgain={playAgain}
+            onDismiss={() => {
+              setDismissedGame(gameId);
+            }}
           />
         </main>
       </MotionConfig>

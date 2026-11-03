@@ -228,10 +228,6 @@ button {
   outline-offset: -3px;
 }
 
-.drawer__column[aria-disabled='true'] {
-  cursor: default;
-}
-
 .drawer__blocks {
   pointer-events: none;
 }
