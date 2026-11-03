@@ -1,4 +1,4 @@
-import { motion } from 'motion/react';
+import { m } from 'motion/react';
 import { inkFor } from '../ink';
 
 interface TypeFaceProps {
@@ -12,16 +12,12 @@ export function TypeFace({ value, variant }: TypeFaceProps) {
     <span
       className={variant ? `type-face type-face--${variant}` : 'type-face'}
       data-ink={inkFor(value)}
-      data-digits={String(value).length}
+      // O CSS encolhe o número conforme a quantidade de algarismos, para que nunca passe da face.
+      style={{ '--digits': String(value).length }}
     >
-      <motion.span
-        key={value}
-        initial={{ scale: 1.35 }}
-        animate={{ scale: 1 }}
-        transition={{ duration: 0.18 }}
-      >
+      <m.span key={value} initial={{ scale: 1.35 }} animate={{ scale: 1 }} transition={{ duration: 0.18 }}>
         {value}
-      </motion.span>
+      </m.span>
     </span>
   );
 }

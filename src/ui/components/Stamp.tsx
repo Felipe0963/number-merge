@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, m } from 'motion/react';
 
 interface StampProps {
   chain: number;
@@ -10,7 +10,7 @@ export function Stamp({ chain, step }: StampProps) {
   return (
     <AnimatePresence>
       {chain >= 2 && (
-        <motion.span
+        <m.span
           key={step}
           className="stamp"
           aria-hidden="true"
@@ -20,7 +20,7 @@ export function Stamp({ chain, step }: StampProps) {
           transition={{ duration: 0.16 }}
         >
           ×{chain}
-        </motion.span>
+        </m.span>
       )}
     </AnimatePresence>
   );

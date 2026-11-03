@@ -1,6 +1,6 @@
-import { MotionConfig, useReducedMotion } from 'motion/react';
+import { LazyMotion, MotionConfig, domAnimation, useReducedMotion } from 'motion/react';
 import { useMemo, useState } from 'react';
-import type { Position } from './game';
+import { COLUMNS, ROWS, type Position } from './game';
 import { Drawer } from './ui/components/Drawer';
 import { GameOver } from './ui/components/GameOver';
 import { Intro } from './ui/components/Intro';
@@ -17,6 +17,7 @@ import { randomSeed, readSeed } from './ui/seed';
 
 export function App() {
   const [seed] = useState(() => readSeed(window.location.search));
+  // A preferência de movimento é lida só aqui e passada adiante, inclusive para o Motion.
   const reducedMotion = useReducedMotion() ?? false;
   const { state, move, log, drop, restart } = useGame(seed);
   const frame = useEventPlayer(move, state.board, reducedMotion);
@@ -43,51 +44,55 @@ export function App() {
   };
 
   return (
-    <MotionConfig reducedMotion="user">
-      <main className="app">
-        <header className="app__header">
-          <h1 className="title">{copy.title}</h1>
-          <Ledger score={shown.score} best={best} topBlock={shown.topBlock} reducedMotion={reducedMotion} />
-          <NextBlocks next={state.next} then={state.then} />
-        </header>
+    <LazyMotion features={domAnimation} strict>
+      <MotionConfig reducedMotion={reducedMotion ? 'always' : 'never'}>
+        {/* As medidas do tabuleiro vêm do motor: o CSS as usa na grade, nos blocos e na proporção. */}
+        <main className="app" style={{ '--columns': COLUMNS, '--rows': ROWS }}>
+          <header className="app__header">
+            <h1 className="title">{copy.title}</h1>
+            <Ledger score={shown.score} best={best} topBlock={shown.topBlock} reducedMotion={reducedMotion} />
+            <NextBlocks next={state.next} then={state.then} />
+          </header>
 
-        <div className="app__play">
-          <div className="app__drawer">
-            {/* A explicação fica impressa sobre a gaveta vazia, sem empurrar o layout. */}
-            {state.moves === 0 && <Intro />}
-            <Drawer
-              board={frame.board}
-              exitTargets={exitTargets}
-              chain={chain}
-              step={frame.step}
-              over={state.over}
-              onDrop={drop}
-            />
-            {/* Com movimento reduzido, sem carimbo (design, §3). */}
-            {!reducedMotion && <Stamp chain={chain} step={frame.step} />}
+          <div className="app__play">
+            <div className="app__drawer">
+              {/* A explicação fica impressa sobre a gaveta vazia, sem empurrar o layout. */}
+              {state.moves === 0 && <Intro />}
+              <Drawer
+                board={frame.board}
+                exitTargets={exitTargets}
+                chain={chain}
+                step={frame.step}
+                over={state.over}
+                reducedMotion={reducedMotion}
+                onDrop={drop}
+              />
+              {/* Com movimento reduzido, sem carimbo (design, §3). */}
+              {!reducedMotion && <Stamp chain={chain} step={frame.step} />}
+            </div>
           </div>
-        </div>
 
-        <aside className="app__side">
-          <PressLog entries={log} />
-          <button type="button" className="new-game" onClick={playAgain}>
-            {copy.newGame}
-          </button>
-        </aside>
+          <aside className="app__side">
+            <PressLog entries={log} />
+            <button type="button" className="new-game" onClick={playAgain}>
+              {copy.newGame}
+            </button>
+          </aside>
 
-        <p className="visually-hidden" aria-live="polite" data-testid="announcer">
-          {announcement}
-        </p>
+          <p className="visually-hidden" aria-live="polite" data-testid="announcer">
+            {announcement}
+          </p>
 
-        <GameOver
-          open={shown.over}
-          score={state.score}
-          topBlock={state.topBlock}
-          best={best}
-          isNewBest={isNewBest}
-          onPlayAgain={playAgain}
-        />
-      </main>
-    </MotionConfig>
+          <GameOver
+            open={shown.over}
+            score={state.score}
+            topBlock={state.topBlock}
+            best={best}
+            isNewBest={isNewBest}
+            onPlayAgain={playAgain}
+          />
+        </main>
+      </MotionConfig>
+    </LazyMotion>
   );
 }

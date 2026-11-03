@@ -1,12 +1,16 @@
-import { motion } from 'motion/react';
+import { m } from 'motion/react';
 import { ROWS, type Position, type Tile } from '../../game';
 import { TypeFace } from './TypeFace';
 
 export type ExitTargets = ReadonlyMap<number, Position>;
 
-const place = (at: Position) => ({
-  left: `${String(at.column * 20)}%`,
-  bottom: `${String((at.row * 100) / ROWS)}%`,
+/**
+ * Posição de uma casa como deslocamento a partir do canto de baixo à esquerda da gaveta. As
+ * porcentagens de `translate` são do próprio bloco, que mede uma casa: cada casa vale 100%.
+ */
+export const place = (at: Position) => ({
+  x: `${String(at.column * 100)}%`,
+  y: `${String(-at.row * 100)}%`,
 });
 
 interface TypeBlockProps {
@@ -17,7 +21,7 @@ interface TypeBlockProps {
 /** Um bloco na gaveta. Entra caindo do topo da coluna; ao ser absorvido, desliza até o bloco resultante. */
 export function TypeBlock({ tile, at }: TypeBlockProps) {
   return (
-    <motion.div
+    <m.div
       className="type-block"
       initial={{ ...place({ column: at.column, row: ROWS }), opacity: 0, scaleY: 1 }}
       // Ao pousar, o bloco achata de leve e volta (só na entrada; o movimento reduzido tira a escala).
@@ -37,6 +41,6 @@ export function TypeBlock({ tile, at }: TypeBlockProps) {
       }}
     >
       <TypeFace value={tile.value} />
-    </motion.div>
+    </m.div>
   );
 }

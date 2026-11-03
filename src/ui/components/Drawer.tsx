@@ -1,4 +1,5 @@
-import { AnimatePresence, useAnimate, useReducedMotion } from 'motion/react';
+import { AnimatePresence } from 'motion/react';
+import { useAnimate } from 'motion/react-mini';
 import { useEffect } from 'react';
 import { COLUMNS, type Board } from '../../game';
 import { copy } from '../content/copy';
@@ -12,10 +13,14 @@ interface DrawerProps {
   chain: number;
   step: string;
   over: boolean;
+  reducedMotion: boolean;
   onDrop: (column: number) => void;
 }
 
-export function Drawer({ board, exitTargets, chain, step, over, onDrop }: DrawerProps) {
+/** Tremor da gaveta, em pixels, para a fusão na posição `chain` da cadeia. */
+const shakeFor = (chain: number) => Math.min(2 + chain * 1.5, 9);
+
+export function Drawer({ board, exitTargets, chain, step, over, reducedMotion, onDrop }: DrawerProps) {
   const { setRef, onKeyDown } = useColumnKeys(COLUMNS);
   // No passo de uma fusão, o tabuleiro ainda tem os blocos absorvidos (eles saem no passo seguinte).
   // Tirá-los já aqui faz com que deslizem para o bloco novo enquanto o valor dele é impresso.
@@ -23,13 +28,13 @@ export function Drawer({ board, exitTargets, chain, step, over, onDrop }: Drawer
     .flatMap((column, columnIndex) => column.map((tile, row) => ({ tile, at: { column: columnIndex, row } })))
     .filter(({ tile }) => !exitTargets.has(tile.id));
   const [scope, animate] = useAnimate<HTMLDivElement>();
-  const reducedMotion = useReducedMotion() ?? false;
 
   // Tremor proporcional à cadeia, a cada fusão de ×2 ou mais.
   useEffect(() => {
     if (reducedMotion || chain < 2) return;
-    const shake = Math.min(2 + chain * 1.5, 9);
-    void animate(scope.current, { x: [0, -shake, shake, -shake / 2, 0] }, { duration: 0.28 });
+    const shake = shakeFor(chain);
+    const offsets = [0, -shake, shake, -shake / 2, 0].map((x) => `translateX(${String(x)}px)`);
+    void animate(scope.current, { transform: offsets }, { duration: 0.28 });
   }, [step, chain, reducedMotion, animate, scope]);
 
   return (

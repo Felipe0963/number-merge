@@ -50,7 +50,10 @@ button {
   padding-block: var(--space-4);
 }
 
-/* A área da gaveta mede o espaço livre; a gaveta (5 × 7) ocupa o maior retângulo que cabe nele. */
+/*
+ * A área da gaveta mede o espaço livre; a gaveta ocupa o maior retângulo que cabe nele.
+ * `--columns` e `--rows` vêm das constantes do motor (definidas em `.app`, no App).
+ */
 .app__play {
   container-type: size;
   display: grid;
@@ -59,8 +62,8 @@ button {
 
 .app__drawer {
   position: relative;
-  height: min(100cqh, 100cqw * 7 / 5);
-  aspect-ratio: 5 / 7;
+  height: min(100cqh, 100cqw * var(--rows) / var(--columns));
+  aspect-ratio: var(--columns) / var(--rows);
 }
 
 /* Computador: a gaveta à esquerda, com a altura da tela; placar, próximos e registro ao lado. */
@@ -92,7 +95,7 @@ button {
   }
 
   .app__drawer {
-    height: min(100dvh - 3rem, 54rem, (100vw - 4rem - 2rem - 18rem) * 7 / 5);
+    height: min(100dvh - 3rem, 54rem, (100vw - 4rem - 2rem - 18rem) * var(--rows) / var(--columns));
   }
 }
 
@@ -200,7 +203,7 @@ button {
 
 .drawer__columns {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
 }
 
 .drawer__column {
@@ -215,8 +218,10 @@ button {
   border-right: 0;
 }
 
-.drawer__column:hover {
-  background: rgb(239 228 207 / 0.05);
+@media (hover: hover) {
+  .drawer__column:hover {
+    background: rgb(239 228 207 / 0.05);
+  }
 }
 
 .drawer__column:focus-visible {
@@ -232,15 +237,23 @@ button {
 }
 
 /* Bloco de tipo */
-/* O bloco quase enche o compartimento: sobra só a folga de um filete em volta. */
+/*
+ * O bloco mede uma casa e quase enche o compartimento: sobra só a folga de um filete em volta. Ele
+ * fica no canto de baixo à esquerda; a casa dele é um deslocamento (transform), sem layout a cada quadro.
+ */
 .type-block {
   position: absolute;
-  width: 20%;
-  height: calc(100% / 7);
+  left: 0;
+  bottom: 0;
+  width: calc(100% / var(--columns));
+  height: calc(100% / var(--rows));
   padding: 1%;
 }
 
-/* A face mede a si mesma, e o número cresce com ela; números mais longos encolhem para caber. */
+/*
+ * A face mede a si mesma, e o número cresce com ela. Números mais longos encolhem para caber:
+ * cada algarismo da Alfa Slab One ocupa menos de 1,1 vez o corpo, então `110cqw / --digits` cabe na face.
+ */
 .type-face {
   container-type: size;
   display: grid;
@@ -256,16 +269,7 @@ button {
 }
 
 .type-face > span {
-  font-size: 50cqh;
-}
-.type-face[data-digits='3'] > span {
-  font-size: min(50cqh, 36cqw);
-}
-.type-face[data-digits='4'] > span {
-  font-size: min(50cqh, 28cqw);
-}
-.type-face[data-digits='5'] > span {
-  font-size: min(50cqh, 22cqw);
+  font-size: min(50cqh, 110cqw / var(--digits, 1));
 }
 
 .type-face[data-ink='black'] {
