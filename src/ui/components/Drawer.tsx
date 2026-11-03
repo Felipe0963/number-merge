@@ -21,7 +21,7 @@ interface DrawerProps {
 const shakeFor = (chain: number) => Math.min(2 + chain * 1.5, 9);
 
 export function Drawer({ board, exitTargets, chain, step, over, reducedMotion, onDrop }: DrawerProps) {
-  const { setRef, onKeyDown } = useColumnKeys(COLUMNS);
+  const columnProps = useColumnKeys(COLUMNS);
   // No passo de uma fusão, o tabuleiro ainda tem os blocos absorvidos (eles saem no passo seguinte).
   // Tirá-los já aqui faz com que deslizem para o bloco novo enquanto o valor dele é impresso.
   const tiles = board
@@ -43,7 +43,7 @@ export function Drawer({ board, exitTargets, chain, step, over, reducedMotion, o
         {board.map((column, index) => (
           <button
             key={index}
-            ref={setRef(index)}
+            {...columnProps(index)}
             type="button"
             className="drawer__column"
             aria-label={copy.columnLabel(index, column)}
@@ -51,7 +51,6 @@ export function Drawer({ board, exitTargets, chain, step, over, reducedMotion, o
             onClick={() => {
               if (!over) onDrop(index);
             }}
-            onKeyDown={onKeyDown(index)}
           />
         ))}
       </div>
