@@ -19,8 +19,10 @@ export function TypeBlock({ tile, at }: TypeBlockProps) {
   return (
     <motion.div
       className="type-block"
-      initial={{ ...place({ column: at.column, row: ROWS }), opacity: 0 }}
-      animate={{ ...place(at), opacity: 1 }}
+      initial={{ ...place({ column: at.column, row: ROWS }), opacity: 0, scaleY: 1 }}
+      // Ao pousar, o bloco achata de leve e volta (só na entrada; o movimento reduzido tira a escala).
+      animate={{ ...place(at), opacity: 1, scaleY: [1, 1, 0.88, 1] }}
+      style={{ transformOrigin: '50% 100%' }}
       exit="absorbed"
       variants={{
         absorbed: (targets: ExitTargets) => {
@@ -28,7 +30,11 @@ export function TypeBlock({ tile, at }: TypeBlockProps) {
           return target ? { ...place(target), opacity: 0 } : { opacity: 0 };
         },
       }}
-      transition={{ duration: 0.2, ease: [0.55, 0, 1, 0.45] }}
+      transition={{
+        duration: 0.2,
+        ease: [0.55, 0, 1, 0.45],
+        scaleY: { duration: 0.32, times: [0, 0.6, 0.78, 1], ease: 'easeOut' },
+      }}
     >
       <TypeFace value={tile.value} />
     </motion.div>

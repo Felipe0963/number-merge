@@ -17,9 +17,11 @@ interface DrawerProps {
 
 export function Drawer({ board, exitTargets, chain, step, over, onDrop }: DrawerProps) {
   const { setRef, onKeyDown } = useColumnKeys(COLUMNS);
-  const tiles = board.flatMap((column, columnIndex) =>
-    column.map((tile, row) => ({ tile, at: { column: columnIndex, row } })),
-  );
+  // No passo de uma fusão, o tabuleiro ainda tem os blocos absorvidos (eles saem no passo seguinte).
+  // Tirá-los já aqui faz com que deslizem para o bloco novo enquanto o valor dele é impresso.
+  const tiles = board
+    .flatMap((column, columnIndex) => column.map((tile, row) => ({ tile, at: { column: columnIndex, row } })))
+    .filter(({ tile }) => !exitTargets.has(tile.id));
   const [scope, animate] = useAnimate<HTMLDivElement>();
   const reducedMotion = useReducedMotion() ?? false;
 

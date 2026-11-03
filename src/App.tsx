@@ -54,8 +54,9 @@ export function App() {
         </header>
 
         <div className="app__play">
-          {state.moves === 0 && <Intro />}
-          <div style={{ position: 'relative' }}>
+          <div className="app__drawer">
+            {/* A explicação fica impressa sobre a gaveta vazia, sem empurrar o layout. */}
+            {state.moves === 0 && <Intro />}
             <Drawer
               board={frame.board}
               exitTargets={exitTargets}
@@ -64,7 +65,8 @@ export function App() {
               over={state.over}
               onDrop={drop}
             />
-            <Stamp chain={chain} step={frame.step} />
+            {/* Com movimento reduzido, sem carimbo (design, §3). */}
+            {!reducedMotion && <Stamp chain={chain} step={frame.step} />}
           </div>
         </div>
 

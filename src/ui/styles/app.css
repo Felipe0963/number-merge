@@ -35,24 +35,48 @@ button {
   border: 0;
 }
 
+/*
+ * Celular: placar e próximos em cima, a gaveta com todo o espaço que sobra, novo jogo embaixo.
+ * A partida inteira cabe na tela; só em telas muito baixas a gaveta para em 20rem e a página rola.
+ */
 .app {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-4);
+  grid-template-rows: auto minmax(20rem, 1fr) auto;
+  gap: var(--space-3);
   width: min(100% - 2rem, 28rem);
+  min-height: 100dvh;
   margin: 0 auto;
-  padding-block: var(--space-6);
+  padding-block: var(--space-4);
 }
 
+/* A área da gaveta mede o espaço livre; a gaveta (5 × 7) ocupa o maior retângulo que cabe nele. */
+.app__play {
+  container-type: size;
+  display: grid;
+  place-items: center;
+}
+
+.app__drawer {
+  position: relative;
+  height: min(100cqh, 100cqw * 7 / 5);
+  aspect-ratio: 5 / 7;
+}
+
+/* Computador: a gaveta à esquerda, com a altura da tela; placar, próximos e registro ao lado. */
 @media (min-width: 900px) {
   .app {
-    width: min(100% - 4rem, 56rem);
-    grid-template-columns: minmax(0, 28rem) minmax(0, 1fr);
+    width: min(100% - 4rem, 72rem);
+    grid-template-columns: auto minmax(18rem, 30rem);
+    justify-content: center;
+    grid-template-rows: auto 1fr;
     grid-template-areas:
-      'header header'
+      'drawer header'
       'drawer side';
-    align-items: start;
+    align-content: center;
     column-gap: var(--space-8);
+    row-gap: var(--space-6);
+    padding-block: var(--space-6);
   }
 
   .app__header {
@@ -60,9 +84,15 @@ button {
   }
   .app__play {
     grid-area: drawer;
+    container-type: normal;
   }
   .app__side {
     grid-area: side;
+    align-content: start;
+  }
+
+  .app__drawer {
+    height: min(100dvh - 3rem, 54rem, (100vw - 4rem - 2rem - 18rem) * 7 / 5);
   }
 }
 
@@ -128,14 +158,22 @@ button {
   color: var(--paper-muted);
 }
 
-.next-blocks .type-face--then {
-  font-size: 0.75em;
-}
-
-/* A gaveta */
-.app__play {
+/* A explicação, numa tira de papel deixada sobre a gaveta vazia; os cliques passam para as colunas. */
+.intro {
+  position: absolute;
+  inset-inline: 8%;
+  top: 20%;
+  z-index: 1;
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
+  padding: var(--space-4);
+  font-size: 0.9rem;
+  color: var(--ink-black);
+  text-align: center;
+  background: var(--paper);
+  border-radius: 0.25rem;
+  box-shadow: 0 3px 0 rgb(0 0 0 / 0.35);
+  pointer-events: none;
 }
 
 .intro p {
@@ -143,9 +181,10 @@ button {
   line-height: 1.5;
 }
 
+/* A gaveta */
 .drawer {
   position: relative;
-  aspect-ratio: 5 / 7;
+  height: 100%;
   padding: var(--space-2);
   background:
     repeating-linear-gradient(92deg, rgb(255 255 255 / 0.02) 0 2px, transparent 2px 9px), var(--walnut);
@@ -168,7 +207,7 @@ button {
   padding: 0;
   background: transparent;
   border: 0;
-  border-right: 1px solid rgb(176 141 87 / 0.55);
+  border-right: 2px solid rgb(176 141 87 / 0.6);
   cursor: pointer;
 }
 
@@ -193,25 +232,40 @@ button {
 }
 
 /* Bloco de tipo */
+/* O bloco quase enche o compartimento: sobra só a folga de um filete em volta. */
 .type-block {
   position: absolute;
   width: 20%;
   height: calc(100% / 7);
-  padding: 3%;
+  padding: 1%;
 }
 
+/* A face mede a si mesma, e o número cresce com ela; números mais longos encolhem para caber. */
 .type-face {
+  container-type: size;
   display: grid;
   place-items: center;
   width: 100%;
   height: 100%;
   font-family: var(--font-type);
-  font-size: clamp(0.9rem, 4.2vw, 1.6rem);
   line-height: 1;
   background: var(--boxwood);
   border-bottom: 4px solid var(--boxwood-edge);
   border-radius: var(--radius-block);
   box-shadow: 0 2px 0 rgb(0 0 0 / 0.35);
+}
+
+.type-face > span {
+  font-size: 50cqh;
+}
+.type-face[data-digits='3'] > span {
+  font-size: min(50cqh, 36cqw);
+}
+.type-face[data-digits='4'] > span {
+  font-size: min(50cqh, 28cqw);
+}
+.type-face[data-digits='5'] > span {
+  font-size: min(50cqh, 22cqw);
 }
 
 .type-face[data-ink='black'] {

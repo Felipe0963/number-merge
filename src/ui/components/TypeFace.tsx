@@ -9,7 +9,11 @@ interface TypeFaceProps {
 /** A face de madeira com o número impresso. Ao mudar de valor, o número entra com uma "batida". */
 export function TypeFace({ value, variant }: TypeFaceProps) {
   return (
-    <span className={variant ? `type-face type-face--${variant}` : 'type-face'} data-ink={inkFor(value)}>
+    <span
+      className={variant ? `type-face type-face--${variant}` : 'type-face'}
+      data-ink={inkFor(value)}
+      data-digits={String(value).length}
+    >
       <motion.span
         key={value}
         initial={{ scale: 1.35 }}
