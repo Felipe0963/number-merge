@@ -1,0 +1,31 @@
+:root {
+  /* A gaveta de tipos. Contraste conferido: --paper sobre --walnut ≈ 12:1; tintas sobre --boxwood ≥ 4,5:1. */
+  --walnut: #2b1d14;
+  --walnut-deep: #1e140e;
+  --brass: #b08d57;
+  --boxwood: #e8d5b0;
+  --boxwood-edge: #c9b48c;
+  --paper: #efe4cf;
+  --paper-muted: #cdbfa4;
+
+  --ink-black: #1a1410;
+  --ink-navy: #1f3a5f;
+  --ink-green: #1f4d3a;
+  --ink-ochre: #6e4a0c;
+  --ink-carmine: #8f1d2c;
+
+  --font-type: 'Alfa Slab One', 'Rockwell', Georgia, serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  --radius-block: 0.35rem;
+  --drop-duration: 220ms;
+
+  color-scheme: dark;
+}
